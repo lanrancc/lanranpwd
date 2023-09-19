@@ -1,0 +1,240 @@
+{extend name="layout"/}
+{block name="main"}
+<div class="col-xs-12 col-sm-10 col-md-8 col-lg-12 center-block">
+    <div class="panel panel-info">
+        <div class="panel-heading">密码管理中心<span style="float: right !important;"> <a class="btn btn-warning btn-xs" @click="add()">添加</a> </span></div>
+        <div class="panel-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th>标题</th>
+                        <th>描述</th>
+                        <th>网址</th>
+                        <th>添加时间</th>
+                        <th>最后修改时间</th>
+                        <th class="text-center">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="p in list">
+                        <td class="text-center">
+                        {{ p.id }}
+                        </td>
+                        <td class="text-center">
+                            {{p.title}}
+                        </td>
+                        <td class="text-center">
+                            {{p.desc}}
+                        </td>
+                        <td class="text-center">
+                            {{p.weburl}}
+                        </td>
+                        <td class="text-center">
+                            {{p.create_time}}
+                        </td>
+                        <td class="text-center">
+                            {{p.update_time}}
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-default btn-xs" data-target="#look" data-toggle="modal" @click="pwd=p">查看信息</button>
+                            <button type="button" class="btn btn-success btn-xs" data-target="#edit" data-toggle="modal" @click="pwd=p">编辑</button>
+                            <button type="button" class="btn btn-danger btn-xs" @click="del(p.id)">删除</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel-footer">
+                <pagination ref="pagination" :total="total" :current_page="search.page" :page_size="search.pageSize"
+                            @page-phange="pageChange"></pagination>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="edit">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">编辑</h4>
+            </div>
+            <div class="modal-body">
+                <form id="form-update" class="form-horizontal">
+                    <input type="hidden" name="id" :value="pwd.id">
+                    <div class="form-group">
+                        <label for="title" class="col-sm-2 control-label">标题</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="title" name="title" :value="pwd.title">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="desc" class="col-sm-2 control-label">描述</label>
+                        <div class="col-sm-10">
+                            <textarea type="text" rows="3" class="form-control" id="desc" name="desc" :value="pwd.desc"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="weburl" class="col-sm-2 control-label">网址</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="weburl" name="weburl" :value="pwd.weburl">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="username" class="col-sm-2 control-label">用户名</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="username" name="username" :value="pwd.username">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password" class="col-sm-2 control-label">密码</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="password" name="password" :value="pwd.password">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-info" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" @click="update()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="look">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">查看密码</h4>
+            </div>
+            <div class="modal-body">
+                <h4>用户名：{{ pwd.username }}</h4>
+                <h4>密码：{{ pwd.password }}</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-info" data-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="foot"}
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            search: {
+                page: 1,
+                pageSize: 10
+            },
+            total: 0,
+            list: [],
+            pwd: {}
+        },
+        methods: {
+            pageChange: function (p) {
+                this.search.page = p;
+                //重载密码本
+                this.loadRecordList();
+            },
+            //获取密码本
+            loadRecordList: function () {
+                let self = this;
+                lxy.ajax('/user/ajax/data/password/list', this.search, res => {
+                    if (res.code === 200) {
+                        self.total = res.total;
+                        self.list = res.list
+                    } else {
+                        layer.msg(res.msg);
+                    }
+                });
+            },
+            //删除密码本
+            del: function (id) {
+                let self = this;
+                layer.confirm('你确定删除吗?', {
+                    btn: ['确定', '取消'],
+                    closeBtn: 0,
+                }, function () {
+                    lxy.ajax('/user/ajax/data/password/delete', {id: id}, res => {
+                        if (res.code === 200) {
+                            self.loadRecordList();
+                            layer.msg(res.msg);
+                        } else {
+                            layer.msg(res.msg);
+                        }
+                    });
+                });
+            },
+            //更新密码本
+            update: function () {
+                let self = this;
+                lxy.ajax('/user/ajax/data/password/update', $("#form-update").serialize(), res => {
+                    if (res.code === 200) {
+                        $("#edit").modal('hide');
+                        self.loadRecordList();
+                        layer.msg(res.msg);
+                    } else {
+                        layer.msg(res.msg);
+                    }
+                });
+            },
+            //添加密码本
+            add: function () {
+                let self = this;
+                layer.open({
+                    title: "添加操作",
+                    btn: ['添加', '取消'],
+                    btnAlign: 'c',
+                    closeBtn: 0,
+                    shadeClose: true,
+                    zIndex: 1,
+                    content: '<form id="add-form"><div class="form-group">\n' +
+                        '    <label for="title" style="float: left">标题</label>\n' +
+                        '    <input type="text" class="form-control" id="title" name="title" placeholder="标题">\n' +
+                        '  </div>\n' +
+                        '  <div class="form-group">\n' +
+                        '    <label for="desc" style="float: left">描述</label>\n' +
+                        '    <textarea type="text" class="form-control" rows="5" id="desc" name="desc" placeholder="描述"></textarea>\n' +
+                        '  </div>' +
+                        '<div class="form-group">\n' +
+                        '    <label for="weburl" style="float: left">网址</label>\n' +
+                        '    <input type="text" class="form-control" id="weburl" name="weburl" placeholder="网址">\n' +
+                        '  </div>' +
+                        '<div class="form-group">\n' +
+                        '    <label for="username" style="float: left">用户名</label>\n' +
+                        '    <input type="text" class="form-control" id="username" name="username" placeholder="用户名">\n' +
+                        '  </div>\n' +
+                        '  <div class="form-group">\n' +
+                        '    <label for="password" style="float: left">密码</label>\n' +
+                        '    <input type="text" class="form-control" id="password" name="password" placeholder="密码">\n' +
+                        '  </div>' +
+                        '</form>',
+                    yes: function (index, dom) {
+                        layer.close(index);
+                        lxy.ajax('/user/ajax/data/password/add', $("#add-form").serialize(), res => {
+                            if (res.code === 200) {
+                                layer.msg(res.msg);
+                                self.loadRecordList();
+                            } else {
+                                layer.msg(res.msg);
+                            }
+                        });
+                    },
+                });
+            }
+        },
+        mounted: function () {
+            //加载密码本
+            this.loadRecordList();
+        }
+    })
+</script>
+{/block}

@@ -1,0 +1,80 @@
+{extend name="layout"/}
+{block name="main"}
+<div class="col-xs-12 col-sm-10 col-md-8 col-lg-12 center-block" style="float: none;">
+    <div class="panel panel-info">
+        <div class="panel-heading">密码生成</div>
+        <div class="panel-body">
+            <h3>选项</h3>
+            <label class="checkbox-inline">
+                <input type="checkbox"  value="" data-am-ucheck id="include_number" checked> 数字
+            </label>
+            <label class="checkbox-inline">
+                <input type="checkbox"  value="" data-am-ucheck id="include_lowercaseletters" checked> 小写字母
+            </label>
+            <label class="checkbox-inline">
+                <input type="checkbox"  value="" data-am-ucheck id="include_uppercaseletters" checked> 大写字母
+            </label>
+            <label class="checkbox-inline">
+                <input type="checkbox"  value="" data-am-ucheck id="include_punctuation"> 标点符号
+            </label>
+            <label class="checkbox-inline">
+                <input type="checkbox"  value="" data-am-ucheck id="password_unique"> 字符不重复
+            </label>
+            <br>
+            <form>
+                <div class="form-group">
+                    <label for="password_length">密码长度</label>
+                    <input type="text" class="form-control" id="password_length" value="8" placeholder="请输入密码长度">
+                </div>
+                <div class="form-group">
+                    <label for="password_quantity">密码数量</label>
+                    <input type="text" class="form-control" id="password_quantity" value="5" placeholder="请输入数量">
+                </div>
+                <label for="output"></label><textarea placeholder="点击提交生成" class="form-control" id="output" rows="7"></textarea>
+                <br>
+                <button type="button" id="generate" class="btn btn-default">提交</button>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="foot"}
+<script>
+    $includeNumber = document.getElementById("include_number"),
+        $includeLowercaseletters = document.getElementById("include_lowercaseletters"),
+        $includeUppercaseletters = document.getElementById("include_uppercaseletters"),
+        $includePunctuation = document.getElementById("include_punctuation"),
+        $passwordUnique = document.getElementById("password_unique"),
+        $passwordLength = document.getElementById("password_length"),
+        $passwordQuantity = document.getElementById("password_quantity"),
+        $generate = document.getElementById("generate"),
+        $output = document.getElementById("output");
+    function rand(max) {
+        return Math.floor(Math.random() * max);
+    }
+    $generate.onclick = function() {
+        let chars = "";
+        if ($includeNumber.checked) chars += "0123456789";
+        if ($includeLowercaseletters.checked) chars += "abcdefghijklmnopqrstuvwxyz";
+        if ($includeUppercaseletters.checked) chars += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        if ($includePunctuation.checked) chars += "`~!@#$%^&*()-_=+[{]}\|;:'\",<.>/?";
+
+        let passwords = [],
+            passwordUnique = $passwordUnique.checked;
+        for (let i = 0,
+                 l = $passwordQuantity.value; i < l; i++) {
+            let _chars = chars.split(""),
+                password = "";
+            for (let j = 0,
+                     k = $passwordLength.value; j < k; j++) {
+                if (_chars.length < 1) break;
+                let index = rand(_chars.length);
+                password += _chars[index];
+                if (passwordUnique) _chars.splice(index, 1);
+            }
+            passwords.push(password);
+        }
+        $output.value = passwords.join("\n");
+    };
+</script>
+{/block}

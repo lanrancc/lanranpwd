@@ -1,0 +1,112 @@
+{extend name="layout"/}
+{block name="main"}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                后台首页
+            </div>
+            <div class="panel-body">
+                <table class="table table-bordered">
+                    <tbody>
+                    <tr>
+                        <td align="center"><span style="color: #808080; "><b>今日增加记录</b><br>{$dayCount}</span></td>
+                        <td align="center"><span style="color: #808080; "><b>当前记录总计</b><br>{$pwdCount}</span></td>
+                        <td align="center"><span style="color: #808080; "><b>当前活跃用户</b><br>{$userCount}</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="list-group">
+            <a href="#" class="list-group-item active">
+                <h4 class="list-group-item-heading">欢迎管理员<b>{:adminInfo('account')}</b>回到系统后台！</h4>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="panel panel-info">
+            <div class="panel-heading">事件</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th class="text-center">行为</th>
+                            <th class="text-center">注明</th>
+                            <th class="text-center">操作ip</th>
+                            <th class="text-center">URL</th>
+                            <th class="text-center">数据</th>
+                            <th class="text-center">时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="logs in list">
+                            <td class="text-center">{{ logs.id }}</td>
+                            <td class="text-center">{{ logs.action }}</td>
+                            <td class="text-center">{{ logs.remark }}</td>
+                            <td><p class="text-center text-danger">{{ logs.ip }}</p></td>
+                            <td class="text-center">
+                                {{ logs.url }}
+                            </td>
+                            <td class="text-center">
+                                {{ logs.data }}
+                            </td>
+                            <td class="text-center">
+                                {{ logs.create_time }}
+                            </td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel-footer">
+                    <pagination ref="pagination" :total="total" :current_page="search.page" :page_size="search.pageSize"
+                                @page-phange="pageChange"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="foot"}
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            search: {
+                page: 1,
+                pageSize: 10
+            },
+            total: 0,
+            list: [],
+        },
+        methods: {
+            pageChange: function (p) {
+                this.search.page = p;
+                this.loadLogList();//重载事件列表
+            },
+            //获取事件列表
+            loadLogList: function () {
+                let self = this;
+                lxy.ajax('/admin/ajax/logs', this.search, res => {
+                    if (res.code === 200) {
+                        self.total = res.total;
+                        self.list = res.list
+                    } else {
+                        layer.msg(res.msg);
+                    }
+                });
+            },
+        },
+        mounted: function () {
+            //加载事件列表
+            this.loadLogList();
+        }
+    })
+</script>
+{/block}

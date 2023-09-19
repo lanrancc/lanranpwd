@@ -1,0 +1,141 @@
+{extend name="layout"/}
+{block name="main"}
+<div class="row">
+<div class="col-md-12">
+    <div class="panel panel-default">
+        <div class="panel-heading">数据统计</div>
+        <div class="panel-body">
+            <table class="table table-bordered">
+                <tbody>
+                <tr>
+                    <td align="center"><span style="color: #808080; "><b>今日增加记录</b><br>{$count_day}</span></td>
+                    <td align="center"><span style="color: #808080; "><b>当前记录总计</b><br>{$count_pwd}</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+    <div class="col-md-4">
+        <div class="panel panel-warning">
+            <div class="panel-heading">本站公告</div>
+            <div class="panel-body">
+                <blockquote v-for="n in noticeList">
+                <p> {{ n.title }} <small> <a href="#" data-target="#look" data-toggle="modal" @click="notice=n">点击查看</a></small></p>
+                    <footer> {{ n.create_time }} </footer>
+                </blockquote>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="panel panel-info">
+            <div class="panel-heading">事件</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th>行为</th>
+                            <th>注明</th>
+                            <th>操作ip</th>
+                            <th class="text-center">时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="logs in list">
+                            <td class="text-center">{{ logs.id }}</td>
+                            <td>{{ logs.action }}</td>
+                            <td>{{ logs.remark }}</td>
+                            <td><p class="text-danger">{{ logs.ip }}</p></td>
+                            <td class="text-center">
+                                {{ logs.create_time }}
+                            </td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel-footer">
+                    <pagination ref="pagination" :total="total" :current_page="search.page" :page_size="search.pageSize"
+                                @page-phange="pageChange"></pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="look">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">{{ notice.title }}</h4>
+            </div>
+            <div class="modal-body">
+                <h4 v-html="notice.content"></h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-info" data-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="foot"}
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            search: {
+                page: 1,
+                pageSize: 10,
+            },
+            total: 0,
+            noticeTotal: 0,
+            list: [],
+            noticeList: [],
+            notice: []
+        },
+        methods: {
+            pageChange: function (p) {
+                this.search.page = p;
+                this.loadLogList();//重载事件列表
+            },
+            //获取事件列表
+            loadLogList: function () {
+                let self = this;
+                lxy.ajax('/user/ajax/logs', this.search, res => {
+                    if (res.code === 200) {
+                        self.total = res.total;
+                        self.list = res.list
+                    } else {
+                        layer.msg(res.msg);
+                    }
+                });
+            },
+            //获取公告列表
+            loadNoticeList: function () {
+                let self = this;
+                lxy.ajax('/admin/ajax/data/notice/list', {
+                    page: 1,
+                    pageSize: 5
+                }, res => {
+                    if (res.code === 200) {
+                        self.noticeTotal = res.total;
+                        self.noticeList = res.list
+                    } else {
+                        layer.msg(res.msg);
+                    }
+                });
+            }
+        },
+        mounted: function () {
+            //加载事件列表
+            this.loadLogList();
+            this.loadNoticeList();
+        }
+    })
+</script>
+{/block}

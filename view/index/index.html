@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{:config('lxy.web_name')} - 您的贴身密码管家</title>
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <meta name="Author" Content="Lxy,b2cc.top">
+    <meta name="Copyright" Content="本页版权归Lxy所有.All Rights Reserved">
+<style type="text/css">* {
+    padding: 0;
+    margin: 0;
+}
+
+div {
+    padding: 4px 48px;
+}
+
+a {
+    color: #2E5CD5;
+    cursor: pointer;
+    text-decoration: none
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+body {
+    background: #fff;
+    font-family: "Century Gothic", "Microsoft yahei";
+    color: #333;
+    font-size: 18px;
+}
+
+h1 {
+    font-size: 100px;
+    font-weight: normal;
+    margin-bottom: 12px;
+}
+
+p {
+    line-height: 1.6em;
+    font-size: 42px
+}
+</style>
+</head>
+<body>
+
+<div style="padding: 24px 48px;"><h1>:) </h1>
+    <p> 您的贴身密码管家 V1.0.0<br/><span style="font-size:30px;">[ {if condition="$Request.session.user.id"}<a href="/user/">前往用户中心</a>{else /}<a href="/user/login">登录</a> OR <a href="/user/register">注册</a>{/if} ]</span></p></div>
+</body>
+</html>

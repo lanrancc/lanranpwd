@@ -1,0 +1,147 @@
+{extend name="layout"/}
+{block name="main"}
+<div class="col-xs-12 col-sm-10 col-md-8 col-lg-12 center-block" style="float: none;">
+<div class="panel panel-success">
+    <div class="panel-heading">用户列表</div>
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th class="text-center">UID</th>
+                    <th>用户名</th>
+                    <th>QQ</th>
+                    <th>注册IP</th>
+                    <th>状态</th>
+                    <th>注册时间</th>
+                    <th class="text-center">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="u in list">
+                    <td class="text-center">
+                        {{ u.id }}
+                    </td>
+                    <td class="text-center">
+                        {{u.account}}
+                    </td>
+                    <td class="text-center">
+                        {{u.qq}}
+                    </td>
+                    <td class="text-center">
+                        {{u.reg_ip}}
+                    </td>
+                    <td class="text-center">
+                        {{u.status}}
+                    </td>
+                    <td class="text-center">
+                        {{formartTime(u.create_time)}}
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-default btn-xs" @click="pass(u.id)">改密</button>
+                        <button type="button" class="btn btn-warning btn-xs" v-if="parseInt(u.status)===0" @click="status(u,'status',1)">封禁</button>
+                        <button type="button" class="btn btn-success btn-xs" v-if="parseInt(u.status)===1" @click="status(u,'status',0)">正常</button>
+                        <button type="button" class="btn btn-danger btn-xs" @click="del(u.id)">删除</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="panel-footer">
+            <pagination ref="pagination" :total="total" :current_page="search.page" :page_size="search.pageSize"
+                        @page-phange="pageChange"></pagination>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="foot"}
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            search: {
+                page: 1,
+                pageSize: 10
+            },
+            total: 0,
+            list: []
+        },
+        methods: {
+            pageChange: function (p) {
+                this.search.page = p;
+                //重载密码本
+                this.loadUserList();
+            },
+            //计算时间戳
+            formartTime:function (timestamp) {
+                let date = new Date(timestamp * 1000);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
+                let Y = date.getFullYear() + '-';
+                let M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+                let D = date.getDate() + ' ';
+                let h = date.getHours() + ':';
+                let m = date.getMinutes() + ':';
+                let s = date.getSeconds();
+                return Y + M + D + h + m + s;
+            },
+            //获取密码本
+            loadUserList: function () {
+                let self = this;
+                lxy.ajax('/admin/ajax/data/userlist/list', this.search, res => {
+                    if (res.code === 200) {
+                        self.total = res.total;
+                        self.list = res.list
+                    } else {
+                        layer.msg(res.msg);
+                    }
+                });
+            },
+            //删除用户
+            del: function (id) {
+                let self = this;
+                layer.confirm('你确定删除吗?', {
+                    btn: ['确定', '取消'],
+                    closeBtn: 0,
+                }, function () {
+                    lxy.ajax('/admin/ajax/data/userlist/delete', {id: id}, res => {
+                        if (res.code === 200) {
+                            self.loadUserList();
+                            layer.msg(res.msg);
+                        } else {
+                            layer.msg(res.msg);
+                        }
+                    });
+                });
+            },
+            //更新密码
+            pass: function (id) {
+                lxy.ajax('/admin/ajax/data/userlist/pass', {id: id}, res => {
+                    if (res.code === 200) {
+                        layer.alert(res.msg);
+                    } else {
+                        layer.msg(res.msg);
+                    }
+                });
+            },
+            status: function (u, act, value) {
+                lxy.ajax('/admin/ajax/data/userlist/status', {
+                    id: u.id,
+                    act: 'status',
+                    value: value
+                }, res => {
+                    if (res.code === 200) {
+                        layer.msg(res.msg);
+                        u[act] = value
+                    } else {
+                        layer.msg(res.msg);
+                    }
+                });
+            },
+        },
+        mounted: function () {
+            //加载用户列表
+            this.loadUserList();
+        }
+    })
+</script>
+{/block}

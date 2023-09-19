@@ -1,0 +1,170 @@
+{extend name="layout"/}
+{block name="main"}
+<div class="col-xs-12 col-sm-10 col-md-8 col-lg-12 center-block" style="float: none;">
+    <div class="panel panel-info">
+        <div class="panel-heading">公告列表<span style="float: right !important;"> <a class="btn btn-warning btn-xs" @click="add()">添加</a> </span></div>
+        <div class="panel-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th class="text-center">标题</th>
+                        <th class="text-center">时间</th>
+                        <th class="text-center">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="n in list">
+                        <th class="text-center">{{ n.id }}</th>
+                        <th class="text-center">{{ n.title }}</th>
+                        <th class="text-center">{{ n.create_time }}</th>
+                        <th class="text-center">
+                            <button type="button" class="btn btn-success btn-xs" data-target="#edit" data-toggle="modal" @click="notice=n">编辑</button>
+                            <button type="button" class="btn btn-danger btn-xs" @click="del(n.id)">删除</button>
+                        </th>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel-footer">
+                <pagination ref="pagination" :total="total" :current_page="search.page" :page_size="search.pageSize"
+                            @page-phange="pageChange"></pagination>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="edit">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">编辑</h4>
+            </div>
+            <div class="modal-body">
+                <form id="form-update" class="form-horizontal">
+                    <input type="hidden" name="id" :value="notice.id">
+                    <div class="form-group">
+                        <label for="title" class="col-sm-2 control-label">标题</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="title" name="title" :value="notice.title">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="content" class="col-sm-2 control-label">内容</label>
+                        <div class="col-sm-10">
+                            <textarea type="text" rows="3" class="form-control" id="content" name="content" :value="notice.content"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-info" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" @click="update()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="foot"}
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            search: {
+                page: 1,
+                pageSize: 10
+            },
+            total: 0,
+            list: [],
+            notice: {}
+        },
+        methods: {
+            pageChange: function (p) {
+                this.search.page = p;
+                this.loadNoticeList();//重载公告列表
+            },
+            //获取公告列表
+            loadNoticeList: function () {
+                let self = this;
+                lxy.ajax('/admin/ajax/data/notice/list', this.search, res => {
+                    if (res.code === 200) {
+                        self.total = res.total;
+                        self.list = res.list
+                    } else {
+                        layer.msg(res.msg);
+                    }
+                });
+            },
+            //删除公告
+            del: function (id) {
+                let self = this;
+                layer.confirm('你确定删除吗?', {
+                    btn: ['确定', '取消'],
+                    closeBtn: 0,
+                }, function () {
+                    lxy.ajax('/admin/ajax/data/notice/delete', {id: id}, res => {
+                        if (res.code === 200) {
+                            self.loadNoticeList();
+                            layer.msg(res.msg);
+                        } else {
+                            layer.msg(res.msg);
+                        }
+                    });
+                });
+            },
+            //更新公告
+            update: function () {
+                let self = this;
+                lxy.ajax('/admin/ajax/data/notice/update', $("#form-update").serialize(), res => {
+                    if (res.code === 200) {
+                        $("#edit").modal('hide');
+                        self.loadNoticeList();
+                        layer.msg(res.msg);
+                    } else {
+                        layer.msg(res.msg);
+                    }
+                });
+            },
+            //添加公告
+            add: function () {
+                let self = this;
+                layer.open({
+                    title: "添加操作",
+                    btn: ['添加', '取消'],
+                    btnAlign: 'c',
+                    closeBtn: 0,
+                    shadeClose: true,
+                    zIndex: 1,
+                    content: '<form id="add-form"><div class="form-group">\n' +
+                        '    <label for="title" style="float: left">标题</label>\n' +
+                        '    <input type="text" class="form-control" id="title" name="title" placeholder="请输入标题">\n' +
+                        '  </div>\n' +
+                        '  <div class="form-group">\n' +
+                        '    <label for="content" style="float: left">描述</label>\n' +
+                        '    <textarea type="text" class="form-control" rows="7" id="content" name="content" placeholder="请输入描述，支持HTML"></textarea>\n' +
+                        '  </div>' +
+                        '</form>',
+                    yes: function (index, dom) {
+                        layer.close(index);
+                        lxy.ajax('/admin/ajax/data/notice/add', $("#add-form").serialize(), res => {
+                            if (res.code === 200) {
+                                layer.msg(res.msg);
+                                self.loadNoticeList();
+                            } else {
+                                layer.msg(res.msg);
+                            }
+                        });
+                    },
+                });
+            }
+        },
+        mounted: function () {
+            //加载公告列表
+            this.loadNoticeList();
+        }
+    })
+</script>
+{/block}

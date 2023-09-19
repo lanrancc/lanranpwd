@@ -1,0 +1,59 @@
+{extend name="layout"/}
+{block name="main"}
+<div class="col-xs-12 col-sm-10 col-md-8 col-lg-12 center-block" style="float: none;">
+  <div class="panel panel-danger">
+    <div class="panel-heading">网站配置</div>
+    <div class="panel-body">
+      <form id="save">
+        <div class="form-group">
+          <label for="web_name">网站名称</label>
+          <input type="text" class="form-control" id="web_name" name="web_name"
+                 value="{:config('lxy.web_name')}" placeholder="请输入网站名称">
+        </div>
+        <div class="form-group">
+          <label for="title">网站副标题</label>
+          <input type="text" class="form-control" id="title" name="title" value="{:config('lxy.title')}"
+                 placeholder="请输入网站副标题">
+        </div>
+        <div class="form-group">
+          <label for="keywords">网站SEO关键字</label>
+          <input type="text" class="form-control" id="keywords" name="keywords"
+                 value="{:config('lxy.keywords')}" placeholder="请输入网站SEO关键字">
+        </div>
+        <div class="form-group">
+          <label for="description">网站SEO描述</label>
+          <input type="text" class="form-control" id="description" name="description"
+                 value="{:config('lxy.description')}" placeholder="请输入网站SEO描述">
+        </div>
+        <div class="form-group">
+          <label for="notice">首页公告</label>
+          <textarea class="form-control" id="notice" name="notice" cols="30" rows="3" placeholder="请输入首页公告">{:config('lxy.notice')}</textarea>
+        </div>
+        <button type="button" class="btn btn-success" @click="saveConfig()">保存</button>
+      </form>
+    </div>
+  </div>
+</div>
+{/block}
+{block name="foot"}
+<script>
+  new Vue({
+    el: '#app',
+    methods: {
+      saveConfig: function () {
+        let self = this;
+        lxy.ajax('/admin/ajax/saveConfig', $("#save").serialize(), res => {
+          if (res.code === 200) {
+            layer.msg(res.msg);
+            setTimeout(function () {
+                window.location.href = "/admin/data/setting";
+            }, 1000);
+          } else {
+            layer.msg(res.msg);
+          }
+        });
+      }
+    }
+  })
+</script>
+{/block}
